@@ -1,5 +1,8 @@
 settings.py
+.gitignore
 *.log
 .idea/*
 __pycache__/*
 venv/*
+sith/*
+telegram-message-format.txt

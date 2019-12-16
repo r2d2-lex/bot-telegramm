@@ -5,4 +5,5 @@ settings.py
 __pycache__/*
 venv/*
 sith/*
+downloads/
 telegram-message-format.txt

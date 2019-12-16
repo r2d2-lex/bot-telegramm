@@ -15,6 +15,8 @@ def main():
     dp.add_handler(RegexHandler('^(sith)$', send_picture, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.contact, get_contact, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.location, get_location, pass_user_data=True))
+    dp.add_handler(MessageHandler(Filters.photo, check_user_photo, pass_user_data=True))
+
     dp.add_handler(MessageHandler(Filters.text, talk_to_me, pass_user_data=True))
 
     mybot.start_polling()

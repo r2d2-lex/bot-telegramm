@@ -20,7 +20,8 @@ def get_keyboard():
     location_button = KeyboardButton('Прислать координаты', request_location=True)
 
     my_keyboard = ReplyKeyboardMarkup([['start', 'stop', '/sith'],
-                                       [contact_button, location_button]])
+                                       [contact_button, location_button],
+                                      ['Заполнить анкету']])
     return(my_keyboard)
 
 

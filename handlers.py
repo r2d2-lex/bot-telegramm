@@ -1,7 +1,9 @@
 from glob import glob
 from random import choice
 from utils import get_keyboard, get_user_emo, is_sword
+from telegram import ParseMode
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
+from telegram.ext import ConversationHandler
 import os
 import logging
 
@@ -24,6 +26,39 @@ def anketa_get_name(bot, update, user_data):
             reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
         )
         return "rating"
+
+
+def anketa_rating(bot, update, user_data):
+    user_data['anketa_rating'] = update.message.text
+    update.message.reply_text("""Пожалуйста напишите отзыв в свободной форме 
+        или /skip что пропустить этот шаг""")
+    return "comment"
+
+
+def anketa_comment(bot, update, user_data):
+    user_data['anketa_comment'] = update.message.text
+    user_text = """
+    <b>Имя Фамилия:</b> {anketa_name}
+    <b>Оценка:</b> {anketa_rating}
+    <b>Коментарий:</b> {anketa_comment}
+    """.format(**user_data)
+    update.message.reply_text(user_text, reply_markup=get_keyboard(), parse_mode=ParseMode.HTML)
+    return ConversationHandler.END
+
+
+def anketa_skip_comment(bot, update, user_data):
+    user_text = """
+      <b>Имя Фамилия:</b> {anketa_name}
+      <b>Оценка:</b> {anketa_rating}
+      """.format(**user_data)
+    update.message.reply_text(user_text, reply_markup=get_keyboard(), parse_mode=ParseMode.HTML)
+    return ConversationHandler.END
+
+
+def dont_known(bot, update, user_data):
+    update.message.reply_text("Я не понимаю")
+    return
+
 
 def greet_user(bot, update, user_data):
     emo = get_user_emo(user_data)

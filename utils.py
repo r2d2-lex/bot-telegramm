@@ -22,7 +22,7 @@ def get_keyboard():
     my_keyboard = ReplyKeyboardMarkup([['start', 'stop', '/sith'],
                                        [contact_button, location_button],
                                       ['Заполнить анкету']])
-    return(my_keyboard)
+    return my_keyboard
 
 
 def is_sword(filename):

@@ -6,7 +6,8 @@ from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler
 import os
 import logging
-
+from telebot1 import subscribers
+from telegram.ext import messagequeue as mq
 
 def anketa_start(bot, update, user_data):
     update.message.reply_text('Как вас зовут? Напишите имя и фамилию', reply_markup=ReplyKeyboardRemove())
@@ -72,7 +73,6 @@ def greet_user(bot, update, user_data):
 def bye_user(bot, update, user_data):
     text = 'Вызван STOP!'
     print(text)
-    #update.message.reply_text(text)
     bot.send_message(chat_id=update.message.chat_id, text='Stop', reply_markup=get_keyboard())
 
 
@@ -80,9 +80,9 @@ def talk_to_me(bot, update, user_data):
     emo = get_user_emo(user_data)
     user_text = "Привет {0} {1}! Ты написал: {2}".format(update.message.chat.first_name, emo,
                                                          update.message.text)
-    logging.info("User %s, Chat id: %s, Message: %s", update.message.chat.username,
-                 update.message.chat.id, update.message.text)
-    print(update.message)
+    logging.info("User %s, Chat id: %s, Message: %s", update.message['chat']['first_name'],
+                 update.message.chat_id, update.message['text'])
+    #print(update.message)
     print('Date:',update.message['date'])
     print('From:', update.message['chat']['first_name'], update.message['chat']['last_name'])
     update.message.reply_text(user_text, reply_markup=get_keyboard())
@@ -118,3 +118,36 @@ def check_user_photo(bot, update, user_data):
     else:
         os.remove(filename)
         update.message.reply_text("Меч не обнаружен!")
+
+
+def subscribe(bot, update):
+    subscribers.add(update.message.chat_id)
+    update.message.reply_text('Вы подписались')
+    print(subscribers)
+
+
+@mq.queuedmessage
+def send_updates(bot, job):
+    for sub in subscribers:
+        bot.send_message(chat_id=sub, text='Auto messages...')
+
+
+def unsubscribe(bot, update):
+    if update.message.chat_id in subscribers:
+        subscribers.remove(update.message.chat_id)
+        update.message.reply_text('Вы отписались')
+    else:
+        update.message.reply_text('Вы не подписаны, нажмите /subscribe чтобы подписаться')
+
+
+def set_alarm(bot, update, args, job_queue):
+    try:
+        seconds = abs(int(args[0]))
+        job_queue.run_once(alarm, seconds, context=update.message.chat_id)
+    except (IndexError, ValueError):
+        update.message.reply_text('Введите число после команды /alarm')
+
+
+#@mq.queuedmessage
+def alarm(bot, job):
+    bot.send_message(chat_id=job.context, text="Сработал будильник")

@@ -1,14 +1,22 @@
-from telegram.ext import Updater, CommandHandler, ConversationHandler , MessageHandler, Filters, RegexHandler
+from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters, RegexHandler
+from telegram.ext import messagequeue as mq
 from handlers import *
 import settings
 
-logging.basicConfig(format='%(name)s - %(levelname)s - $(message)s', level=logging.INFO,filename='bot.log')
+logging.basicConfig(format='%(name)s - %(levelname)s - $(message)s', level=logging.INFO, filename='bot.log')
+
+subscribers = set()
 
 
 def main():
     mybot = Updater(settings.BOT_API_KEY,request_kwargs=settings.PROXY)
+    mybot.bot._msg_queue = mq.MessageQueue
+    mybot.bot._is_messages_queued_default = True
 
     dp = mybot.dispatcher
+
+    mybot.job_queue.run_repeating(send_updates, interval=5)
+
     anketa = ConversationHandler(
         entry_points=[RegexHandler('^(Заполнить анкету)$', anketa_start, pass_user_data=True)],
         states={
@@ -21,6 +29,9 @@ def main():
         fallbacks=[MessageHandler(Filters.text, dont_known, pass_user_data=True)]
     )
 
+    dp.add_handler(CommandHandler('alarm', set_alarm, pass_args=True, pass_job_queue=True))
+    dp.add_handler(CommandHandler('subscribe', subscribe))
+    dp.add_handler(CommandHandler('unsubscribe', unsubscribe))
     dp.add_handler(CommandHandler('start', greet_user, pass_user_data=True))
     dp.add_handler(anketa)
     dp.add_handler(CommandHandler('stop', bye_user, pass_user_data=True))
@@ -29,6 +40,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.contact, get_contact, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.location, get_location, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.photo, check_user_photo, pass_user_data=True))
+    # Last in handlers...
     dp.add_handler(MessageHandler(Filters.text, talk_to_me, pass_user_data=True))
 
     mybot.start_polling()

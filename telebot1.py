@@ -37,6 +37,7 @@ def main():
     dp.add_handler(CommandHandler('stop', bye_user, pass_user_data=True))
     dp.add_handler(CommandHandler('sith', send_picture, pass_user_data=True))
     dp.add_handler(RegexHandler('^(sith)$', send_picture, pass_user_data=True))
+    dp.add_handler(RegexHandler('^(Сменить аватар)$', change_avatar, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.contact, get_contact, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.location, get_location, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.photo, check_user_photo, pass_user_data=True))

@@ -1,13 +1,12 @@
 from glob import glob
 from random import choice
 from utils import get_keyboard, is_sword
-from telegram import ParseMode
-from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
+from telegram import error, ParseMode, ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler
 import os
 import logging
 from telebot1 import subscribers
-from db import db, get_or_create_user, get_user_emo
+from db import db, get_or_create_user, get_user_emo, toggle_subscription, get_subscribers
 from telegram.ext import messagequeue as mq
 
 
@@ -81,6 +80,7 @@ def greet_user(bot, update, user_data):
     user = get_or_create_user(db, update.effective_user, update.message)
     #debug
     print("User:", user)
+    print("user_data:", user_data)
     print("Effective User: ", update.effective_user, "\r\n")
     print("Update Message: ", update.message, "\r\n")
     #/debug
@@ -150,21 +150,25 @@ def check_user_photo(bot, update, user_data):
 
 def subscribe(bot, update):
     user = get_or_create_user(db, update.effective_user, update.message)
-    subscribers.add(update.message.chat_id)
+    if not user.get('subscribed'):
+        toggle_subscription(db, user)
     update.message.reply_text('Вы подписались')
-    print(subscribers)
+    #print(subscribers)
 
 
 @mq.queuedmessage
 def send_updates(bot, job):
-    for sub in subscribers:
-        bot.send_message(chat_id=sub, text='Auto messages...')
+    for user in get_subscribers(db):
+        try:
+            bot.send_message(chat_id=user['chat_id'], text='Auto messages...')
+        except error.BadRequest:
+            print ('Чат {}, не найден'.format(user['chat_id']))
 
 
 def unsubscribe(bot, update):
     user = get_or_create_user(db, update.effective_user, update.message)
-    if update.message.chat_id in subscribers:
-        subscribers.remove(update.message.chat_id)
+    if user.get('subscribed'):
+        toggle_subscription(db, user)
         update.message.reply_text('Вы отписались')
     else:
         update.message.reply_text('Вы не подписаны, нажмите /subscribe чтобы подписаться')

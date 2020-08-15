@@ -1,6 +1,8 @@
+from emoji import emojize
 from glob import glob
 from random import choice
 from utils import get_keyboard, is_sword
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram import error, ParseMode, ReplyKeyboardRemove, ReplyKeyboardMarkup
 from telegram.ext import ConversationHandler
 import os
@@ -117,7 +119,10 @@ def send_picture(bot, update, user_data):
     img_dir = "sith"
     img_list = glob(img_dir + "/*.jp*g")
     img_pic = choice(img_list)
-    bot.send_photo(chat_id=update.message.chat_id, photo=open(img_pic, 'rb'), reply_markup=get_keyboard())
+    inlinekb = [[InlineKeyboardButton(emojize(':thumbs_up:'), callback_data='pic_like'),
+                 InlineKeyboardButton(emojize(':thumbs_down:'), callback_data='pic_dislike')]]
+    reply_markup = InlineKeyboardMarkup(inlinekb)
+    bot.send_photo(chat_id=update.message.chat_id, photo=open(img_pic, 'rb'), reply_markup=reply_markup)
 
 
 def get_contact(bot, update, user_data):
@@ -154,6 +159,22 @@ def subscribe(bot, update):
         toggle_subscription(db, user)
     update.message.reply_text('Вы подписались')
     #print(subscribers)
+
+
+# def show_inlinekb(bot, update, user_data):
+#     inlinekb = [[InlineKeyboardButton('Смешно', callback_data='1'),
+#                  InlineKeyboardButton('Не смешно', callback_data='0')]]
+#     reply_markup = InlineKeyboardMarkup(inlinekb)
+#     update.message.reply_text('Заходят в бар бесконечное число математиков',
+#                               reply_markup=reply_markup)
+
+
+def inline_button_presses(bot, update):
+    query = update.callback_query
+    if query.data in ['pic_like', 'pic_dislike']:
+        text = "Like" if query.data == 'pic_like' else "Dislike"
+        #bot.edit_message_text(text=text, chat_id=query.message.chat_id, message_id=query.message.message_id)
+        bot.edit_message_caption(caption=text, chat_id=query.message.chat_id, message_id=query.message.message_id)
 
 
 @mq.queuedmessage

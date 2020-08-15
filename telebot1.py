@@ -1,4 +1,5 @@
-from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters, RegexHandler
+from telegram.ext import CallbackQueryHandler, CommandHandler, ConversationHandler,\
+    MessageHandler, Updater, Filters, RegexHandler
 from telegram.ext import messagequeue as mq
 from handlers import *
 import settings
@@ -38,6 +39,8 @@ def main():
     dp.add_handler(CommandHandler('sith', send_picture, pass_user_data=True))
     dp.add_handler(RegexHandler('^(sith)$', send_picture, pass_user_data=True))
     dp.add_handler(RegexHandler('^(Сменить аватар)$', change_avatar, pass_user_data=True))
+    #dp.add_handler(RegexHandler('^(Покозать inline-клавиатуру)$', show_inlinekb, pass_user_data=True))
+    dp.add_handler(CallbackQueryHandler(inline_button_presses))
     dp.add_handler(MessageHandler(Filters.contact, get_contact, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.location, get_location, pass_user_data=True))
     dp.add_handler(MessageHandler(Filters.photo, check_user_photo, pass_user_data=True))

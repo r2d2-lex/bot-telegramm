@@ -11,7 +11,7 @@ def get_keyboard():
 
     my_keyboard = ReplyKeyboardMarkup([['/start', '/stop', '/sith'],
                                        [contact_button, location_button, 'Сменить аватар'],
-                                      ['Заполнить анкету']])
+                                      ['Заполнить анкету', 'Покозать inline-клавиатуру']])
     return my_keyboard
 
 
